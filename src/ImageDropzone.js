@@ -14,14 +14,6 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: 'center',
         flexDirection: 'column'
     },
-    mainContainer: {
-    },
-    paper: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column'
-    },
     imageContainer: {
         padding: '4px',
         height: '20rem',
@@ -38,23 +30,25 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const ImageDropZone = ({ addImage }) => {
-
+const ImageDropZone = ({}) => {
 
     const initialState = {
         cropping: false,
         pendingImage: null,
+        croppedImage: null
     }
 
     // Initialize State
     const [{ cropping, pendingImage, croppedImage }, setLogoState] = useState(initialState)
 
-
     // Handle accepted dropzone files
-    const handleDropAccepted = (venueImage) => setLogoState({
-        pendingImage: venueImage,
-        cropping: true,
-    })
+    const handleDropAccepted = (image) => {
+        setLogoState({
+            pendingImage: image,
+            cropping: true,
+        })
+        console.log('Cropping image...')
+    }
 
     // Handle rejected dropzone files
     const handleDropRejected = (error) => {
@@ -64,6 +58,10 @@ const ImageDropZone = ({ addImage }) => {
 
     // Handle cropped files
     const handleCropAccepted = (croppedImage) => {
+
+        console.log('Image has been cropped')
+        console.log('Cropping Image uploading...')
+
         // Format cropped image
         const formattedCroppedImage = {
             ...pendingImage,
@@ -85,8 +83,12 @@ const ImageDropZone = ({ addImage }) => {
     const classes = useStyles();
 
     const onDrop = useCallback((acceptedFiles) => {
-        console.log('ACCEPTED')
         acceptedFiles.forEach((file) => {
+            console.log('Loading image...')
+            console.log(`pending image filename: ${file.name}`)
+            console.log(`pending image type: ${file.type}`)
+            console.log(`pending image size: ${file.size}`)
+            console.log(`pending image last modified date: ${file.lastModifiedDate.toString()}`)
 
             const formattedImagePayload = {
                 image_filename: file.name,
@@ -107,7 +109,7 @@ const ImageDropZone = ({ addImage }) => {
     }, [])
 
     const onDropRejected = useCallback(() => {
-         console.log('REJECTD')
+
         const error = {
             title: 'Upload Error',
             body: {
@@ -127,8 +129,6 @@ const ImageDropZone = ({ addImage }) => {
         getInputProps,
         isDragActive
     } = useDropzone(dropzoneOptions)
-
-    console.log({ cropping, pendingImage, croppedImage })
 
     const renderDropzone = () => (
         <Paper className={classes.paper}>

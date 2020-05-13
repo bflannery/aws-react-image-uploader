@@ -3,9 +3,9 @@ import './App.css';
 import ImageDropZone from "./ImageDropzone";
 
 function App() {
-  return (
+    return (
     <div className="App">
-      <ImageDropZone />
+        <ImageDropZone />
     </div>
   );
 }

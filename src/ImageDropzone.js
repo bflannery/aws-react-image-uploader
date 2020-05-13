@@ -1,9 +1,8 @@
-import React, {useCallback, useRef, useState} from 'react'
+import React, {useCallback, useState} from 'react'
 import {useDropzone} from 'react-dropzone'
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper'
 import Grid from "@material-ui/core/Grid";
-import Cropper from 'react-cropper'
 import 'cropperjs/dist/cropper.css';
 import CroppingModal from "./CroppingModal";
 
@@ -23,8 +22,14 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: 'center',
         flexDirection: 'column'
     },
+    imageContainer: {
+        padding: '4px',
+        height: '20rem',
+        width: '20rem',
+    },
     dropzone: {
-        padding: '1rem',
+        height: '20rem',
+        width: '20rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -33,21 +38,21 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const ImageDropZone = () => {
-    const cropperRef = useRef()
+const ImageDropZone = ({ addImage }) => {
+
 
     const initialState = {
         cropping: false,
-        pendingLogo: null,
+        pendingImage: null,
     }
 
     // Initialize State
-    const [{ cropping, pendingLogo }, setLogoState] = useState(initialState)
+    const [{ cropping, pendingImage, croppedImage }, setLogoState] = useState(initialState)
 
 
     // Handle accepted dropzone files
     const handleDropAccepted = (venueImage) => setLogoState({
-        pendingLogo: venueImage,
+        pendingImage: venueImage,
         cropping: true,
     })
 
@@ -61,18 +66,17 @@ const ImageDropZone = () => {
     const handleCropAccepted = (croppedImage) => {
         // Format cropped image
         const formattedCroppedImage = {
-            ...pendingLogo,
+            ...pendingImage,
             image_data: croppedImage,
         }
 
-        // Update redux gallery state
-        // editLogo(formattedCroppedImage)
-
-        // Update component gallery state
-        return setLogoState(initialState)
+        // Update component image state
+        return setLogoState({
+            ...initialState,
+            croppedImage: formattedCroppedImage
+        })
     }
 
-    // Filter image gallery and call redux action to update gallery array
     const handleRemoveImage = () => setLogoState(initialState)
 
     // Close cropping modal
@@ -124,7 +128,45 @@ const ImageDropZone = () => {
         isDragActive
     } = useDropzone(dropzoneOptions)
 
-    console.log({ cropping, pendingLogo })
+    console.log({ cropping, pendingImage, croppedImage })
+
+    const renderDropzone = () => (
+        <Paper className={classes.paper}>
+            <div {...getRootProps({
+                className: classes.dropzone
+            })}>
+                <input {...getInputProps()} />
+                {isDragActive ?
+                    <p>Drop the files here ...</p> :
+                    <p>Drag 'n' drop an image file here, or click to select file</p>
+                }
+            </div>
+        </Paper>
+    )
+
+    const renderCroppedImage = () => (
+        <div className={classes.imageContainer}>
+            <img
+                src={croppedImage.image_data}
+                alt="venue-logos"
+                height="100%"
+                width="100%"
+                className="venue-image"
+            />
+        </div>
+    )
+
+    const renderCroppingModal = () => (
+        <CroppingModal
+            open={cropping}
+            closeModal={handleCloseCroppingModal}
+            onSave={handleCropAccepted}
+            img={pendingImage}
+            style={{ height: '50rem', width: '50rem' }}
+            aspectRatio={1}
+        />
+    )
+
     return (
         <Grid className={classes.root}>
             <Grid container justify="center" spacing={1}>
@@ -132,34 +174,12 @@ const ImageDropZone = () => {
                     className={classes.mainContainer}
                     item
                 >
-                    {!pendingLogo && (
-                        <Paper className={classes.paper}>
-                            <div {...getRootProps({
-                                className: classes.dropzone
-                            })}>
-                                <input {...getInputProps()} />
-                                {isDragActive ?
-                                    <p>Drop the files here ...</p> :
-                                    <p>Drag 'n' drop some files here, or click to select files</p>
-                                }
-                            </div>
-                        </Paper>
-                    )}
+                    {!pendingImage && !croppedImage && renderDropzone()}
+                    {croppedImage && renderCroppedImage()}
                 </Grid>
+                {cropping && renderCroppingModal()}
             </Grid>
-            {cropping && (
-                <CroppingModal
-                    open={cropping}
-                    closeModal={handleCloseCroppingModal}
-                    onSave={handleCropAccepted}
-                    img={pendingLogo}
-                    style={{ height: '50rem', width: '50rem' }}
-                    aspectRatio={1}
-                />
-            )}
         </Grid>
-
-
     )
 }
 

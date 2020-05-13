@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 import Cropper from 'react-cropper'
 import 'cropperjs/dist/cropper.css'
-import Modal from "@material-ui/core/Modal";
+import Dialog from "@material-ui/core/Dialog";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 const buttonStyling = 'w-md waves-effect waves-light'
 
@@ -24,8 +25,8 @@ class CroppingModal extends Component {
         const { closeModal, img, open, style, aspectRatio } = this.props
 
         return (
-            <Modal open={open} close={closeModal} className="venue-img-cropping-modal-root">
-                <>
+            <Dialog onClose={closeModal} aria-labelledby="simple-dialog-title" open={open}>
+                <DialogTitle id="simple-dialog-title">Crop Image</DialogTitle>
                 <div className="venue-img-cropping-modal-body">
                     <Cropper
                         className="venue-img-cropper"
@@ -52,8 +53,7 @@ class CroppingModal extends Component {
                         OK
                     </button>
                 </div>
-                    </>
-            </Modal>
+            </Dialog>
         )
     }
 }

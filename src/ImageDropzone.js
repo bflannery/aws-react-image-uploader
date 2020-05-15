@@ -5,6 +5,7 @@ import Paper from '@material-ui/core/Paper'
 import Grid from "@material-ui/core/Grid";
 import 'cropperjs/dist/cropper.css';
 import CroppingModal from "./CroppingModal";
+import axios from 'axios';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -41,6 +42,35 @@ const ImageDropZone = ({}) => {
     // Initialize State
     const [{ cropping, pendingImage, croppedImage }, setLogoState] = useState(initialState)
 
+    const uploadFile = (image) => {
+        // When the upload file button is clicked,
+        // first we need to get the presigned URL
+        // URL is the one you get from AWS API Gateway
+        console.log({ image })
+        axios(
+            "https://hdawgc2100.execute-api.us-east-1.amazonaws.com/test/presigned-url?fileName=" +
+            image.image_filename
+        ).then(response => {
+            // Getting the url from response
+            console.log({ response })
+            const url = response.data.fileUploadURL;
+
+            // Initiating the PUT request to upload file
+            axios({
+                method: "PUT",
+                url: url,
+                data: image.image_data,
+                headers: { "Content-Type": "multipart/form-data" }
+            })
+                .then(res => {
+                    console.log({ response })
+                })
+                .catch(err => {
+                    console.log({ err })
+                });
+        });
+    }
+
     // Handle accepted dropzone files
     const handleDropAccepted = (image) => {
         setLogoState({
@@ -67,6 +97,8 @@ const ImageDropZone = ({}) => {
             ...pendingImage,
             image_data: croppedImage,
         }
+
+        uploadFile(formattedCroppedImage)
 
         // Update component image state
         return setLogoState({

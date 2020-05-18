@@ -31,28 +31,40 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const ImageDropZone = ({}) => {
+const ImageDropZone = () => {
 
     const initialState = {
         cropping: false,
         pendingImage: null,
-        croppedImage: null
+        croppedImage: null,
     }
 
     // Initialize State
-    const [{ cropping, pendingImage, croppedImage }, setLogoState] = useState(initialState)
+    const [dropzoneState, updateDropzoneState] = useState(initialState)
+
+    const{ cropping, pendingImage, croppedImage } = dropzoneState
 
     const uploadFile = (image) => {
+        console.log('Uploading Image to S3...')
         // When the upload file button is clicked,
         // first we need to get the presigned URL
         // URL is the one you get from AWS API Gateway
-        console.log({ image })
         axios(
             "https://hdawgc2100.execute-api.us-east-1.amazonaws.com/test/presigned-url?fileName=" +
             image.image_filename
         ).then(response => {
             // Getting the url from response
-            console.log({ response })
+            const { bucketName, contentType, encodedImageUri, fileName, fileUploadUrl} = response.data
+
+            console.log('Image Upload to S3 Succeeded!')
+            console.log('File Name:', fileName)
+            console.log('Bucket Name:', bucketName)
+            console.log('Content Type:', contentType)
+            console.log('Encoded Uri:', encodedImageUri)
+            console.log('Upload Url:', fileUploadUrl)
+
+            console.log('Response:', response)
+
             const url = response.data.fileUploadURL;
 
             // Initiating the PUT request to upload file
@@ -73,7 +85,8 @@ const ImageDropZone = ({}) => {
 
     // Handle accepted dropzone files
     const handleDropAccepted = (image) => {
-        setLogoState({
+        updateDropzoneState({
+            ...dropzoneState,
             pendingImage: image,
             cropping: true,
         })
@@ -82,15 +95,16 @@ const ImageDropZone = ({}) => {
 
     // Handle rejected dropzone files
     const handleDropRejected = (error) => {
-        console.log({ error })
-        setLogoState({ cropping: false })
+        console.log('Image Rejected...')
+        console.log('Error: ', error)
+
+        updateDropzoneState({ ...dropzoneState, croppedImage,cropping: false })
     }
 
     // Handle cropped files
     const handleCropAccepted = (croppedImage) => {
 
-        console.log('Image has been cropped')
-        console.log('Cropping Image uploading...')
+        console.log('Image has been cropped...')
 
         // Format cropped image
         const formattedCroppedImage = {
@@ -101,16 +115,16 @@ const ImageDropZone = ({}) => {
         uploadFile(formattedCroppedImage)
 
         // Update component image state
-        return setLogoState({
+        return updateDropzoneState({
             ...initialState,
             croppedImage: formattedCroppedImage
         })
     }
 
-    const handleRemoveImage = () => setLogoState(initialState)
+    // const handleRemoveImage = () => updateDropzoneState(initialState)
 
     // Close cropping modal
-    const handleCloseCroppingModal = () => setLogoState(initialState)
+    const handleCloseCroppingModal = () => updateDropzoneState(initialState)
 
     const classes = useStyles();
 
